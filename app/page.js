@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { Settings, RefreshCw, History, TrendingUp, Zap, Award, X, Check, RotateCcw, Info, Download, Share } from 'lucide-react';
 
 const LottoGenerator = () => {
-  const [generatedNumbers, setGeneratedNumbers] = useState([]);
+  const [generatedGames, setGeneratedGames] = useState([]); // 5게임 저장
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [numberHistory, setNumberHistory] = useState([]);
+  const [gameHistory, setGameHistory] = useState([]);
   const [numberStates, setNumberStates] = useState({}); // 0: 기본, 1: 포함, 2: 제외
   const [advancedSettings, setAdvancedSettings] = useState({
     excludeConsecutive: false,
@@ -18,14 +18,14 @@ const LottoGenerator = () => {
     recentRounds: 5
   });
 
-  // 최근 당첨번호 (실제 데이터 - 수동 업데이트 필요)
-  const recentWinningNumbers = [
+  // 최근 당첨번호 (API에서 업데이트)
+  const [recentWinningNumbers, setRecentWinningNumbers] = useState([
     { round: 1180, numbers: [6, 12, 18, 37, 40, 41], bonus: 3, date: '2025-01-11' },
     { round: 1179, numbers: [3, 16, 18, 24, 40, 44], bonus: 21, date: '2025-01-04' },
     { round: 1178, numbers: [2, 8, 15, 17, 28, 44], bonus: 9, date: '2024-12-28' },
     { round: 1177, numbers: [5, 12, 14, 22, 25, 32], bonus: 11, date: '2024-12-21' },
     { round: 1176, numbers: [1, 7, 19, 23, 31, 43], bonus: 35, date: '2024-12-14' }
-  ];
+  ]);
 
   // 로컬 스토리지에서 데이터 로드
   useEffect(() => {
@@ -35,7 +35,7 @@ const LottoGenerator = () => {
     
     if (savedHistory) {
       try {
-        setNumberHistory(JSON.parse(savedHistory));
+        setGameHistory(JSON.parse(savedHistory));
       } catch (e) {
         console.error('히스토리 로드 실패:', e);
       }
@@ -56,12 +56,28 @@ const LottoGenerator = () => {
         console.error('설정 로드 실패:', e);
       }
     }
+
+    // 앱 시작 시 최신 당첨번호 가져오기
+    fetchLatestWinningNumbers();
   }, []);
+
+  // 최신 당첨번호 가져오기
+  const fetchLatestWinningNumbers = async () => {
+    try {
+      const response = await fetch('/api/lottery');
+      if (response.ok) {
+        const data = await response.json();
+        setRecentWinningNumbers(data);
+      }
+    } catch (error) {
+      console.error('당첨번호 가져오기 실패:', error);
+    }
+  };
 
   // 데이터 저장
   useEffect(() => {
-    localStorage.setItem('lottoHistory', JSON.stringify(numberHistory));
-  }, [numberHistory]);
+    localStorage.setItem('lottoHistory', JSON.stringify(gameHistory));
+  }, [gameHistory]);
 
   useEffect(() => {
     localStorage.setItem('numberStates', JSON.stringify(numberStates));
@@ -168,8 +184,69 @@ const LottoGenerator = () => {
     return numbers.some(num => recentNumbers.includes(num));
   };
 
-  // 번호 생성 함수
-  const generateNumbers = () => {
+  // 단일 게임 번호 생성
+  const generateSingleGame = () => {
+    const includedNumbers = getIncludedNumbers();
+    const excludedNumbers = getExcludedNumbers();
+    
+    let attempts = 0;
+    let validNumbers = [];
+    
+    while (attempts < 1000) {
+      // 포함 번호부터 시작
+      let selected = [...includedNumbers];
+      
+      // 남은 자리 수 계산
+      const remainingSlots = 6 - selected.length;
+      
+      if (remainingSlots > 0) {
+        // 사용 가능한 번호 (포함 번호와 제외 번호 제외)
+        const availableNumbers = Array.from({length: 45}, (_, i) => i + 1)
+          .filter(num => !includedNumbers.includes(num) && !excludedNumbers.includes(num));
+        
+        if (availableNumbers.length < remainingSlots) {
+          return null; // 불가능한 조합
+        }
+        
+        // 랜덤하게 남은 번호 선택
+        const shuffled = [...availableNumbers].sort(() => Math.random() - 0.5);
+        selected = [...selected, ...shuffled.slice(0, remainingSlots)];
+      }
+      
+      // 정렬
+      selected.sort((a, b) => a - b);
+      
+      // 고급 설정 검사
+      if (advancedSettings.excludeConsecutive && isConsecutive(selected)) {
+        attempts++;
+        continue;
+      }
+      if (advancedSettings.excludeOddOnly && isAllOdd(selected)) {
+        attempts++;
+        continue;
+      }
+      if (advancedSettings.excludeEvenOnly && isAllEven(selected)) {
+        attempts++;
+        continue;
+      }
+      if (advancedSettings.excludeSameColor && isSameColor(selected)) {
+        attempts++;
+        continue;
+      }
+      if (containsRecentWinning(selected)) {
+        attempts++;
+        continue;
+      }
+      
+      validNumbers = selected;
+      break;
+    }
+    
+    return validNumbers.length === 6 ? validNumbers : null;
+  };
+
+  // 5게임 번호 생성
+  const generateGames = () => {
     const includedNumbers = getIncludedNumbers();
     const excludedNumbers = getExcludedNumbers();
     
@@ -182,86 +259,43 @@ const LottoGenerator = () => {
     setIsGenerating(true);
     
     setTimeout(() => {
-      let attempts = 0;
-      let validNumbers = [];
+      const games = [];
       
-      while (attempts < 1000) {
-        // 포함 번호부터 시작
-        let selected = [...includedNumbers];
-        
-        // 남은 자리 수 계산
-        const remainingSlots = 6 - selected.length;
-        
-        if (remainingSlots > 0) {
-          // 사용 가능한 번호 (포함 번호와 제외 번호 제외)
-          const availableNumbers = Array.from({length: 45}, (_, i) => i + 1)
-            .filter(num => !includedNumbers.includes(num) && !excludedNumbers.includes(num));
-          
-          if (availableNumbers.length < remainingSlots) {
-            alert('제외된 번호가 너무 많습니다. 생성 가능한 번호가 부족합니다.');
-            setIsGenerating(false);
-            return;
-          }
-          
-          // 랜덤하게 남은 번호 선택
-          const shuffled = [...availableNumbers].sort(() => Math.random() - 0.5);
-          selected = [...selected, ...shuffled.slice(0, remainingSlots)];
+      for (let i = 0; i < 5; i++) {
+        const game = generateSingleGame();
+        if (game) {
+          games.push(game);
         }
-        
-        // 정렬
-        selected.sort((a, b) => a - b);
-        
-        // 고급 설정 검사
-        if (advancedSettings.excludeConsecutive && isConsecutive(selected)) {
-          attempts++;
-          continue;
-        }
-        if (advancedSettings.excludeOddOnly && isAllOdd(selected)) {
-          attempts++;
-          continue;
-        }
-        if (advancedSettings.excludeEvenOnly && isAllEven(selected)) {
-          attempts++;
-          continue;
-        }
-        if (advancedSettings.excludeSameColor && isSameColor(selected)) {
-          attempts++;
-          continue;
-        }
-        if (containsRecentWinning(selected)) {
-          attempts++;
-          continue;
-        }
-        
-        validNumbers = selected;
-        break;
       }
       
-      if (validNumbers.length === 0) {
+      if (games.length === 0) {
         alert('설정된 조건으로는 번호를 생성할 수 없습니다. 조건을 완화해주세요.');
         setIsGenerating(false);
         return;
       }
       
-      setGeneratedNumbers(validNumbers);
+      setGeneratedGames(games);
       
       // 히스토리에 추가
       const newEntry = {
         id: Date.now(),
-        numbers: validNumbers,
+        games: games,
         timestamp: new Date(),
         settings: { ...advancedSettings, numberStates: { ...numberStates } }
       };
-      setNumberHistory(prev => [newEntry, ...prev.slice(0, 19)]);
+      setGameHistory(prev => [newEntry, ...prev.slice(0, 19)]);
       
       setIsGenerating(false);
     }, 1500);
   };
 
   // 번호 공유 기능
-  const shareNumbers = async () => {
-    const numbersText = generatedNumbers.join(', ');
-    const shareText = `🎰 로또 번호 생성기로 만든 행운의 번호: ${numbersText}\n\n🔗 https://lotto-mocha.vercel.app`;
+  const shareGames = async () => {
+    const gamesText = generatedGames.map((game, index) => 
+      `${String.fromCharCode(65 + index)}게임: ${game.join(', ')}`
+    ).join('\n');
+    
+    const shareText = `🎰 로또 번호 생성기로 만든 행운의 번호들:\n${gamesText}\n\n🔗 https://lotto-mocha.vercel.app`;
     
     if (navigator.share) {
       try {
@@ -288,7 +322,7 @@ const LottoGenerator = () => {
   // 히스토리 삭제
   const clearHistory = () => {
     if (confirm('모든 히스토리를 삭제하시겠습니까?')) {
-      setNumberHistory([]);
+      setGameHistory([]);
     }
   };
 
@@ -330,9 +364,9 @@ const LottoGenerator = () => {
         <div className="max-w-6xl mx-auto">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center gap-2 sm:gap-3">
             <Award className="text-yellow-300" size={24} />
-            <span className="hidden sm:inline">동행복권 </span>로또 6/45 번호 생성기
+            로또 6/45 번호 생성기
           </h1>
-          <p className="mt-2 opacity-90 text-sm sm:text-base">AI 기반 스마트 번호 추출 시스템</p>
+          <p className="mt-2 opacity-90 text-sm sm:text-base">스마트 번호 추출 시스템</p>
         </div>
       </header>
 
@@ -340,29 +374,41 @@ const LottoGenerator = () => {
         {/* 메인 생성 영역 */}
         <section className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">행운의 번호</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">행운의 번호 (5게임)</h2>
             
-            {generatedNumbers.length > 0 ? (
-              <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 mb-6 flex-wrap">
-                {generatedNumbers.map((num, index) => (
-                  <div key={index} className="animate-bounce" style={{animationDelay: `${index * 0.1}s`}}>
-                    <NumberBall number={num} />
+            {generatedGames.length > 0 ? (
+              <div className="space-y-4 mb-6">
+                {generatedGames.map((game, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-sm font-semibold text-gray-600 mb-2">
+                      {String.fromCharCode(65 + index)}게임
+                    </div>
+                    <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
+                      {game.map((num, numIndex) => (
+                        <div key={numIndex} className="animate-bounce" style={{animationDelay: `${numIndex * 0.1}s`}}>
+                          <NumberBall number={num} size="medium" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 mb-6 flex-wrap">
-                {Array.from({length: 6}, (_, i) => (
-                  <div key={i} className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center text-gray-400 font-bold text-lg sm:text-xl">
-                    ?
-                  </div>
-                ))}
+              <div className="mb-6">
+                <div className="text-sm font-semibold text-gray-600 mb-2">5게임이 생성됩니다</div>
+                <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 mb-6 flex-wrap">
+                  {Array.from({length: 6}, (_, i) => (
+                    <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center text-gray-400 font-bold text-sm sm:text-base">
+                      ?
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
               <button 
-                onClick={generateNumbers}
+                onClick={generateGames}
                 disabled={isGenerating}
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 sm:px-8 py-3 rounded-full font-bold text-base sm:text-lg shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2 order-2 sm:order-1"
                 aria-label="로또 번호 생성"
@@ -375,7 +421,7 @@ const LottoGenerator = () => {
                 ) : (
                   <>
                     <Zap size={20} />
-                    번호 생성
+                    5게임 생성
                   </>
                 )}
               </button>
@@ -389,9 +435,9 @@ const LottoGenerator = () => {
                 고급설정
               </button>
 
-              {generatedNumbers.length > 0 && (
+              {generatedGames.length > 0 && (
                 <button 
-                  onClick={shareNumbers}
+                  onClick={shareGames}
                   className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 sm:px-6 py-3 rounded-full font-bold shadow-lg transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 order-3"
                   aria-label="번호 공유하기"
                 >
@@ -429,14 +475,14 @@ const LottoGenerator = () => {
             </div>
           </section>
 
-          {/* 번호 히스토리 */}
+          {/* 게임 히스토리 */}
           <section className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
                 <History className="text-green-500" size={20} />
                 생성 히스토리
               </h3>
-              {numberHistory.length > 0 && (
+              {gameHistory.length > 0 && (
                 <button 
                   onClick={clearHistory}
                   className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1"
@@ -448,17 +494,24 @@ const LottoGenerator = () => {
               )}
             </div>
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {numberHistory.length > 0 ? (
-                numberHistory.map(entry => (
-                  <div key={entry.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                    <div className="flex gap-1 flex-wrap">
-                      {entry.numbers.map(num => (
-                        <NumberBall key={num} number={num} size="small" />
+              {gameHistory.length > 0 ? (
+                gameHistory.map(entry => (
+                  <div key={entry.id} className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500 mb-2">
+                      {entry.timestamp.toLocaleString()} - {entry.games.length}게임
+                    </div>
+                    <div className="space-y-2">
+                      {entry.games.map((game, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400 w-8">{String.fromCharCode(65 + index)}</span>
+                          <div className="flex gap-1 flex-wrap">
+                            {game.map(num => (
+                              <NumberBall key={num} number={num} size="small" />
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
-                    <span className="text-xs text-gray-500 ml-2">
-                      {entry.timestamp.toLocaleTimeString()}
-                    </span>
                   </div>
                 ))
               ) : (

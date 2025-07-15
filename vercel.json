@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/lottery",
+      "schedule": "0 21 * * 6"
+    }
+  ],
+  "functions": {
+    "app/api/lottery/route.js": {
+      "maxDuration": 30
+    }
+  }
+}
