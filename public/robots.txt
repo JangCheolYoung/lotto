@@ -1,0 +1,207 @@
+# 로또 번호 생성기 - robots.txt
+# 검색엔진 크롤링 최적화 설정
+
+# 모든 검색엔진 기본 설정
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+Disallow: /*.json$
+Disallow: /*_buildManifest.js$
+Disallow: /*_ssgManifest.js$
+Disallow: /*_middleware.js$
+Disallow: /sw.js
+Disallow: /workbox-*
+
+# Google 검색엔진 최적화
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+Crawl-delay: 1
+
+# Google 이미지 검색
+User-agent: Googlebot-Image
+Allow: /
+Disallow: /_next/
+Disallow: /static/
+
+# Google 모바일 검색
+User-agent: Googlebot-Mobile
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Bing 검색엔진
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+Crawl-delay: 1
+
+# Naver 검색엔진 (한국)
+User-agent: NaverBot
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+Crawl-delay: 1
+
+# Naver 모바일
+User-agent: NaverBot-1.0
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Daum 검색엔진 (한국)
+User-agent: DaumBot
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+Crawl-delay: 1
+
+# Yahoo 검색엔진
+User-agent: Slurp
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Yandex 검색엔진
+User-agent: YandexBot
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# DuckDuckGo 검색엔진
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Baidu 검색엔진 (중국)
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# 소셜 미디어 크롤러들
+User-agent: facebookexternalhit
+Allow: /
+Disallow: /api/
+
+User-agent: Twitterbot
+Allow: /
+Disallow: /api/
+
+User-agent: LinkedInBot
+Allow: /
+Disallow: /api/
+
+User-agent: WhatsApp
+Allow: /
+Disallow: /api/
+
+User-agent: TelegramBot
+Allow: /
+Disallow: /api/
+
+# 모바일 앱 크롤러
+User-agent: KakaoTalk-Scrap
+Allow: /
+Disallow: /api/
+
+User-agent: KAKAOTALK_SCRAP
+Allow: /
+Disallow: /api/
+
+# SEO 도구들
+User-agent: AhrefsBot
+Allow: /
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Allow: /
+Crawl-delay: 10
+
+User-agent: MJ12bot
+Allow: /
+Crawl-delay: 10
+
+# 악성 봇 차단
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MajesticSEO
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+# 사이트맵 위치
+Sitemap: https://lotto-mocha.vercel.app/sitemap.xml
+
+# 크롤링 속도 제한
+Crawl-delay: 1
+
+# 호스트 지정 (중복 콘텐츠 방지)
+Host: https://lotto-mocha.vercel.app
+
+# 추가 설정
+# 특정 파일 형식 허용
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.gif$
+Allow: /*.svg$
+Allow: /*.webp$
+Allow: /*.ico$
+Allow: /*.woff$
+Allow: /*.woff2$
+
+# PWA 관련 파일들
+Allow: /manifest.json
+Allow: /sw.js
+Disallow: /workbox-*
+
+# 개발 관련 파일들 차단
+Disallow: /*.map$
+Disallow: /.*
+Disallow: /*~
+Disallow: /*.tmp$
+Disallow: /*.log$
+
+# 보안 관련 파일들 차단
+Disallow: /.env*
+Disallow: /.git*
+Disallow: /node_modules/
+Disallow: /package.json
+Disallow: /package-lock.json
+Disallow: /yarn.lock
+
+# Next.js 특화 설정
+Disallow: /_next/static/chunks/
+Disallow: /_next/webpack-hmr/
