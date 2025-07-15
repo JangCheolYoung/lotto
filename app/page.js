@@ -20,11 +20,11 @@ const LottoGenerator = () => {
 
   // 최근 당첨번호 (API에서 업데이트)
   const [recentWinningNumbers, setRecentWinningNumbers] = useState([
-    { round: 1180, numbers: [6, 12, 18, 37, 40, 41], bonus: 3, date: '2025-01-11' },
-    { round: 1179, numbers: [3, 16, 18, 24, 40, 44], bonus: 21, date: '2025-01-04' },
-    { round: 1178, numbers: [2, 8, 15, 17, 28, 44], bonus: 9, date: '2024-12-28' },
-    { round: 1177, numbers: [5, 12, 14, 22, 25, 32], bonus: 11, date: '2024-12-21' },
-    { round: 1176, numbers: [1, 7, 19, 23, 31, 43], bonus: 35, date: '2024-12-14' }
+    { round: 1180, numbers: [6, 12, 18, 37, 40, 41], bonus: 3, date: '2025-07-12' },
+    { round: 1179, numbers: [3, 16, 18, 24, 40, 44], bonus: 21, date: '2025-07-05' },
+    { round: 1178, numbers: [2, 8, 15, 17, 28, 44], bonus: 9, date: '2025-06-28' },
+    { round: 1177, numbers: [5, 12, 14, 22, 25, 32], bonus: 11, date: '2025-06-21' },
+    { round: 1176, numbers: [1, 7, 19, 23, 31, 43], bonus: 35, date: '2025-06-14' }
   ]);
 
   // 로컬 스토리지에서 데이터 로드
