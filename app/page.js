@@ -261,14 +261,14 @@ const LottoGenerator = () => {
   // 번호 공유 기능
   const shareNumbers = async () => {
     const numbersText = generatedNumbers.join(', ');
-    const shareText = `🎰 로또 번호 생성기로 만든 행운의 번호: ${numbersText}\n\n🔗 https://lotto-generator.vercel.app`;
+    const shareText = `🎰 로또 번호 생성기로 만든 행운의 번호: ${numbersText}\n\n🔗 https://lotto-mocha.vercel.app`;
     
     if (navigator.share) {
       try {
         await navigator.share({
           title: '로또 번호 생성기',
           text: shareText,
-          url: 'https://lotto-generator.vercel.app'
+          url: 'https://lotto-mocha.vercel.app'
         });
       } catch (err) {
         console.log('공유 취소:', err);

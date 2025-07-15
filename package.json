@@ -1,5 +1,5 @@
 {
-  "name": "lotto-generator",
+  "name": "lotto",
   "version": "1.2.0",
   "description": "AI 기반 로또 번호 생성기 - 완전한 모바일 최적화 및 SEO 강화",
   "keywords": [
@@ -20,17 +20,17 @@
   ],
   "author": {
     "name": "Lotto Generator Team",
-    "email": "contact@lotto-generator.com",
-    "url": "https://lotto-generator.vercel.app"
+    "email": "contact@lottohub.com",
+    "url": "https://lotto-mocha.vercel.app"
   },
   "license": "MIT",
-  "homepage": "https://lotto-generator.vercel.app",
+  "homepage": "https://lotto-mocha.vercel.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/lotto-generator.git"
+    "url": "https://github.com/JangCheolYoung/lotto.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/lotto-generator/issues"
+    "url": "https://github.com/JangCheolYoung/lotto/issues"
   },
   "private": true,
   "scripts": {

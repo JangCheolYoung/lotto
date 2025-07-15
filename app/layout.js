@@ -12,7 +12,7 @@ export const metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://lotto-generator.vercel.app'),
+  metadataBase: new URL('https://lotto-mocha.vercel.app'),
   alternates: {
     canonical: '/',
   },
@@ -51,7 +51,7 @@ export const metadata = {
   },
   verification: {
     // 수동 수정 필요: 실제 Google Search Console에서 받은 코드로 변경
-    google: 'your-google-verification-code',
+    google: 'google-site-verification=LWywuun8ys8iMZY1bo_OT2oo1ha34Sa2_w2VEPrJEB8',
     yandex: 'your-yandex-verification-code',
   },
 }
@@ -61,7 +61,7 @@ const jsonLd = {
   '@type': 'WebApplication',
   name: '로또 번호 생성기',
   description: '동행복권 로또 6/45 번호를 AI 기술로 스마트하게 생성하는 웹 애플리케이션',
-  url: 'https://lotto-generator.vercel.app',
+  url: 'https://lotto-mocha.vercel.app',
   applicationCategory: 'GameApplication',
   operatingSystem: 'Web',
   browserRequirements: 'Requires JavaScript. Requires HTML5.',
@@ -76,15 +76,15 @@ const jsonLd = {
   },
   mainEntityOfPage: {
     '@type': 'WebPage',
-    '@id': 'https://lotto-generator.vercel.app',
+    '@id': 'https://lotto-mocha.vercel.app',
   },
   potentialAction: {
     '@type': 'UseAction',
-    target: 'https://lotto-generator.vercel.app',
+    target: 'https://lotto-mocha.vercel.app',
     object: '로또 번호 생성',
   },
   sameAs: [
-    'https://github.com/yourusername/lotto-generator'
+    'https://github.com/JangCheolYoung/lotto'
   ],
   keywords: '로또, 번호생성기, 동행복권, 로또645, AI, 스마트로또',
   inLanguage: 'ko-KR',
