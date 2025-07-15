@@ -1,13 +1,52 @@
 {
   "name": "lotto-generator",
-  "version": "1.0.0",
-  "description": "AI 기반 로또 번호 생성기",
+  "version": "1.2.0",
+  "description": "AI 기반 로또 번호 생성기 - 완전한 모바일 최적화 및 SEO 강화",
+  "keywords": [
+    "lotto",
+    "lottery",
+    "number generator",
+    "korean lotto",
+    "645",
+    "AI",
+    "smart generator",
+    "mobile-first",
+    "PWA",
+    "React",
+    "Next.js",
+    "동행복권",
+    "로또생성기",
+    "번호추천"
+  ],
+  "author": {
+    "name": "Lotto Generator Team",
+    "email": "contact@lotto-generator.com",
+    "url": "https://lotto-generator.vercel.app"
+  },
+  "license": "MIT",
+  "homepage": "https://lotto-generator.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/lotto-generator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/lotto-generator/issues"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "export": "next export",
+    "analyze": "cross-env ANALYZE=true npm run build",
+    "clean": "rimraf .next out dist",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "preview": "npm run build && npm run start"
   },
   "dependencies": {
     "next": "14.0.4",
@@ -16,10 +55,47 @@
     "lucide-react": "0.263.1"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "14.0.4",
+    "@tailwindcss/aspect-ratio": "0.4.2",
+    "@tailwindcss/forms": "0.5.7",
+    "@tailwindcss/typography": "0.5.10",
+    "@types/node": "20.10.5",
+    "@types/react": "18.2.45",
+    "@types/react-dom": "18.2.18",
     "autoprefixer": "10.4.16",
+    "cross-env": "7.0.3",
     "eslint": "8.56.0",
     "eslint-config-next": "14.0.4",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-accessibility": "5.0.0",
+    "jest": "29.7.0",
+    "jest-environment-jsdom": "29.7.0",
     "postcss": "8.4.32",
-    "tailwindcss": "3.4.0"
+    "prettier": "3.1.1",
+    "prettier-plugin-tailwindcss": "0.5.9",
+    "rimraf": "5.0.5",
+    "tailwindcss": "3.4.0",
+    "typescript": "5.3.3"
+  },
+  "engines": {
+    "node": ">=18.17.0",
+    "npm": ">=9.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11",
+    "not op_mini all"
+  ],
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.33.0"
+  },
+  "resolutions": {
+    "sharp": "^0.33.0"
   }
 }
