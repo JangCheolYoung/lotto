@@ -3,39 +3,31 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   
-  // 빌드 최적화
+  // 🚨 빌드 트레이스 관련 문제 해결
   experimental: {
+    turbotrace: {
+      logLevel: 'error',
+      // 빌드 트레이스 비활성화
+      memoryLimit: 4096,
+    },
     optimizePackageImports: ['lucide-react'],
   },
   
-  // 정적 최적화
-  output: 'standalone',
+  // 출력 설정 (standalone 제거 - 빌드 트레이스 문제 해결)
+  output: 'export',
+  distDir: '.next',
+  trailingSlash: true,
   
-  // 이미지 최적화 설정
+  // 이미지 최적화 비활성화 (export 모드에서 필요)
   images: {
-    formats: ['image/webp', 'image/avif'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    unoptimized: true
   },
   
   // 압축 설정
   compress: true,
   
-  // 파워 추적 비활성화 (빌드 성능 향상)
-  experimental: {
-    ...nextConfig.experimental,
-    turbotrace: {
-      logLevel: 'error'
-    }
-  },
-  
   // Webpack 설정 최적화
-  webpack: (config, { isServer }) => {
-    // 불필요한 파일 제외
-    config.resolve.alias = {
-      ...config.resolve.alias,
-    };
-    
+  webpack: (config, { isServer, webpack }) => {
     // 빌드 성능 최적화
     if (!isServer) {
       config.resolve.fallback = {
@@ -45,6 +37,11 @@ const nextConfig = {
         tls: false,
       };
     }
+    
+    // 빌드 트레이스 관련 플러그인 비활성화
+    config.plugins = config.plugins.filter(
+      (plugin) => plugin.constructor.name !== 'TraceEntryPointsPlugin'
+    );
     
     return config;
   },
