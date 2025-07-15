@@ -3,47 +3,49 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   
-  // 🚨 빌드 트레이스 관련 문제 해결
+  // Vercel 배포를 위한 기본 설정
   experimental: {
-    turbotrace: {
-      logLevel: 'error',
-      // 빌드 트레이스 비활성화
-      memoryLimit: 4096,
-    },
     optimizePackageImports: ['lucide-react'],
   },
   
-  // 출력 설정 (standalone 제거 - 빌드 트레이스 문제 해결)
-  output: 'export',
-  distDir: '.next',
-  trailingSlash: true,
+  // 정적 export 제거 (Vercel에서는 필요없음)
+  // output: 'export', // 제거
   
-  // 이미지 최적화 비활성화 (export 모드에서 필요)
+  // 이미지 최적화 활성화 (Vercel에서 지원)
   images: {
-    unoptimized: true
+    domains: [],
+    formats: ['image/webp', 'image/avif'],
   },
   
   // 압축 설정
   compress: true,
   
-  // Webpack 설정 최적화
-  webpack: (config, { isServer, webpack }) => {
-    // 빌드 성능 최적화
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-    
-    // 빌드 트레이스 관련 플러그인 비활성화
-    config.plugins = config.plugins.filter(
-      (plugin) => plugin.constructor.name !== 'TraceEntryPointsPlugin'
-    );
-    
-    return config;
+  // 환경변수 설정
+  env: {
+    CUSTOM_KEY: 'lotto-app',
+  },
+  
+  // 헤더 설정
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
   },
 }
 
