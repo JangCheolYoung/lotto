@@ -106,6 +106,8 @@ export default function RootLayout({ children }) {
         <meta name="application-name" content="로또 번호 생성기" />
         <meta name="msapplication-TileColor" content="#3B82F6" />
         <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
+        <meta name="google-site-verification" content="LWywuun8ys8iMZY1bo_OT2oo1ha34Sa2_w2VEPrJEB8" />
+
         
         {/* 다양한 아이콘 크기 지원 */}
         <link rel="icon" href="/favicon.ico" />
