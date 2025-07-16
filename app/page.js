@@ -184,7 +184,7 @@ const LottoGenerator = () => {
     return numbers.some(num => recentNumbers.includes(num));
   };
 
-  // 단일 게임 번호 생성
+  // 단일 게임 번호 생성 (더 안정적으로 수정)
   const generateSingleGame = () => {
     const includedNumbers = getIncludedNumbers();
     const excludedNumbers = getExcludedNumbers();
@@ -192,7 +192,8 @@ const LottoGenerator = () => {
     let attempts = 0;
     let validNumbers = [];
     
-    while (attempts < 1000) {
+    // 최대 10000번 시도해서 반드시 생성
+    while (attempts < 10000) {
       // 포함 번호부터 시작
       let selected = [...includedNumbers];
       
@@ -205,35 +206,58 @@ const LottoGenerator = () => {
           .filter(num => !includedNumbers.includes(num) && !excludedNumbers.includes(num));
         
         if (availableNumbers.length < remainingSlots) {
-          return null; // 불가능한 조합
+          // 불가능한 조건이면 제외 번호 일부 무시하고 생성
+          const allNumbers = Array.from({length: 45}, (_, i) => i + 1)
+            .filter(num => !includedNumbers.includes(num));
+          
+          if (allNumbers.length >= remainingSlots) {
+            const shuffled = [...allNumbers].sort(() => Math.random() - 0.5);
+            selected = [...selected, ...shuffled.slice(0, remainingSlots)];
+          }
+        } else {
+          // 랜덤하게 남은 번호 선택
+          const shuffled = [...availableNumbers].sort(() => Math.random() - 0.5);
+          selected = [...selected, ...shuffled.slice(0, remainingSlots)];
         }
-        
-        // 랜덤하게 남은 번호 선택
-        const shuffled = [...availableNumbers].sort(() => Math.random() - 0.5);
-        selected = [...selected, ...shuffled.slice(0, remainingSlots)];
       }
       
       // 정렬
       selected.sort((a, b) => a - b);
       
-      // 고급 설정 검사
-      if (advancedSettings.excludeConsecutive && isConsecutive(selected)) {
+      // 6개 숫자가 있는지 확인
+      if (selected.length !== 6) {
         attempts++;
         continue;
+      }
+      
+      // 고급 설정 검사 (조건을 완화)
+      let passesFilters = true;
+      
+      if (advancedSettings.excludeConsecutive && isConsecutive(selected)) {
+        passesFilters = false;
       }
       if (advancedSettings.excludeOddOnly && isAllOdd(selected)) {
-        attempts++;
-        continue;
+        passesFilters = false;
       }
       if (advancedSettings.excludeEvenOnly && isAllEven(selected)) {
-        attempts++;
-        continue;
+        passesFilters = false;
       }
       if (advancedSettings.excludeSameColor && isSameColor(selected)) {
-        attempts++;
-        continue;
+        passesFilters = false;
       }
       if (containsRecentWinning(selected)) {
+        passesFilters = false;
+      }
+      
+      // 처음 1000번 시도는 모든 필터 적용
+      // 그 이후는 필터를 점진적으로 완화
+      if (attempts < 1000 && !passesFilters) {
+        attempts++;
+        continue;
+      } else if (attempts < 5000 && advancedSettings.excludeConsecutive && isConsecutive(selected)) {
+        attempts++;
+        continue;
+      } else if (attempts < 8000 && (advancedSettings.excludeOddOnly && isAllOdd(selected)) || (advancedSettings.excludeEvenOnly && isAllEven(selected))) {
         attempts++;
         continue;
       }
@@ -242,13 +266,19 @@ const LottoGenerator = () => {
       break;
     }
     
-    return validNumbers.length === 6 ? validNumbers : null;
+    // 최종적으로 6개 번호가 없으면 강제로 생성
+    if (validNumbers.length !== 6) {
+      const allNumbers = Array.from({length: 45}, (_, i) => i + 1);
+      const shuffled = [...allNumbers].sort(() => Math.random() - 0.5);
+      validNumbers = shuffled.slice(0, 6).sort((a, b) => a - b);
+    }
+    
+    return validNumbers;
   };
 
-  // 5게임 번호 생성
+  // 5게임 번호 생성 (항상 5게임 보장)
   const generateGames = () => {
     const includedNumbers = getIncludedNumbers();
-    const excludedNumbers = getExcludedNumbers();
     
     // 포함 번호가 6개 이상이면 경고
     if (includedNumbers.length > 6) {
@@ -261,17 +291,10 @@ const LottoGenerator = () => {
     setTimeout(() => {
       const games = [];
       
+      // 반드시 5게임 생성
       for (let i = 0; i < 5; i++) {
         const game = generateSingleGame();
-        if (game) {
-          games.push(game);
-        }
-      }
-      
-      if (games.length === 0) {
-        alert('설정된 조건으로는 번호를 생성할 수 없습니다. 조건을 완화해주세요.');
-        setIsGenerating(false);
-        return;
+        games.push(game);
       }
       
       setGeneratedGames(games);
@@ -289,13 +312,13 @@ const LottoGenerator = () => {
     }, 1500);
   };
 
-  // 번호 공유 기능
+  // 번호 공유 기능 (수정된 게임 번호 표시)
   const shareGames = async () => {
     const gamesText = generatedGames.map((game, index) => 
-      `${String.fromCharCode(65 + index)}게임: ${game.join(', ')}`
+      `${index + 1}게임: ${game.join(', ')}`
     ).join('\n');
     
-    const shareText = `🎰 로또 번호 생성기로 만든 행운의 번호들:\n${gamesText}\n\n🔗 https://lotto-mocha.vercel.app`;
+    const shareText = `🎰 로또 번호 생성기로 만든 행운의 번호들:\n\n${gamesText}\n\n🔗 https://lotto-mocha.vercel.app`;
     
     if (navigator.share) {
       try {
@@ -377,26 +400,28 @@ const LottoGenerator = () => {
             <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">행운의 번호 (5게임)</h2>
             
             {generatedGames.length > 0 ? (
-              <div className="space-y-4 mb-6">
-                {generatedGames.map((game, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-sm font-semibold text-gray-600 mb-2">
-                      {String.fromCharCode(65 + index)}게임
+              <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                <div className="space-y-3">
+                  {generatedGames.map((game, index) => (
+                    <div key={index} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+                      <div className="text-sm font-semibold text-gray-600 min-w-[60px]">
+                        {index + 1}게임
+                      </div>
+                      <div className="flex gap-2 sm:gap-3 flex-wrap justify-center flex-1">
+                        {game.map((num, numIndex) => (
+                          <div key={numIndex} className="animate-bounce" style={{animationDelay: `${numIndex * 0.1}s`}}>
+                            <NumberBall number={num} size="medium" />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
-                      {game.map((num, numIndex) => (
-                        <div key={numIndex} className="animate-bounce" style={{animationDelay: `${numIndex * 0.1}s`}}>
-                          <NumberBall number={num} size="medium" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             ) : (
-              <div className="mb-6">
-                <div className="text-sm font-semibold text-gray-600 mb-2">5게임이 생성됩니다</div>
-                <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 mb-6 flex-wrap">
+              <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                <div className="text-sm font-semibold text-gray-600 mb-3">5게임이 생성됩니다</div>
+                <div className="flex justify-center gap-2 sm:gap-3 flex-wrap">
                   {Array.from({length: 6}, (_, i) => (
                     <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center text-gray-400 font-bold text-sm sm:text-base">
                       ?
@@ -503,7 +528,7 @@ const LottoGenerator = () => {
                     <div className="space-y-2">
                       {entry.games.map((game, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <span className="text-xs text-gray-400 w-8">{String.fromCharCode(65 + index)}</span>
+                          <span className="text-xs text-gray-600 font-medium w-8">{index + 1}</span>
                           <div className="flex gap-1 flex-wrap">
                             {game.map(num => (
                               <NumberBall key={num} number={num} size="small" />

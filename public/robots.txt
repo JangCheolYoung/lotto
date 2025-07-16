@@ -17,10 +17,10 @@ Disallow: /workbox-*
 # Google 검색엔진 최적화
 User-agent: Googlebot
 Allow: /
-Disallow: /api/
-Disallow: /_next/
-Disallow: /static/
-Crawl-delay: 1
+Allow: /_next/static/
+Allow: /static/
+Allow: *.css
+Allow: *.js
 
 # Google 이미지 검색
 User-agent: Googlebot-Image
